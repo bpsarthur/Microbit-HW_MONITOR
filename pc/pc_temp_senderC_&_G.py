@@ -3,23 +3,23 @@ import serial
 import time
 import wmi
 
-# --- Configuration ---
-# Find the correct serial port for your micro:bit.
-# On Windows, it will be 'COMx' (e.g., 'COM3').
-# On macOS or Linux, it will be '/dev/tty.usbmodem...' or '/dev/ttyACM...'.
-SERIAL_PORT = 'COM3'  # !!! CHANGE THIS TO YOUR MICRO:BIT'S PORT !!!
+# --- Configuração ---
+# Encontre a porta serial correta do seu micro:bit.
+# No Windows, será 'COMx' (ex: 'COM3').
+# No macOS ou Linux, será '/dev/tty.usbmodem...' ou '/dev/ttyACM...'.
+SERIAL_PORT = 'COM3'  # !!! ALTERE PARA A PORTA DO SEU MICRO:BIT !!!
 BAUD_RATE = 115200
 
-# --- Functions to Get Temperatures ---
+# --- Funções para Obter Temperaturas ---
 
-def get_cpu_temperature():
-    """Gets the CPU temperature."""
+def obter_temperatura_cpu():
+    """Obtém a temperatura da CPU."""
     try:
-        # psutil.sensors_temperatures() can provide CPU temps on some systems (mainly Linux)
+        # psutil.sensors_temperatures() pode fornecer temperaturas da CPU em alguns sistemas (principalmente Linux)
         temps = psutil.sensors_temperatures()
         if 'coretemp' in temps:
             return int(temps['coretemp'][0].current)
-        # Fallback for other systems or if coretemp is not available
+        # Alternativa para outros sistemas ou se coretemp não estiver disponível
         if hasattr(psutil, "sensors_temperatures"):
              temps = psutil.sensors_temperatures()
              if temps:
@@ -27,9 +27,9 @@ def get_cpu_temperature():
                      for entry in entries:
                          return int(entry.current)
     except Exception as e:
-        print(f"Could not get CPU temperature with psutil: {e}")
+        print(f"Não foi possível obter a temperatura da CPU com psutil: {e}")
 
-    # For Windows, a more reliable method using WMI
+    # Para Windows, método mais confiável usando WMI
     try:
         w = wmi.WMI(namespace="root\\OpenHardwareMonitor")
         temperature_infos = w.Sensor()
@@ -37,12 +37,12 @@ def get_cpu_temperature():
             if sensor.SensorType == 'Temperature' and 'cpu' in sensor.Name.lower():
                 return int(sensor.Value)
     except Exception as e:
-        print(f"Could not get CPU temperature with WMI. Is OpenHardwareMonitor running? Error: {e}")
+        print(f"Não foi possível obter a temperatura da CPU com WMI. O OpenHardwareMonitor está em execução? Erro: {e}")
 
     return None
 
-def get_gpu_temperature():
-    """Gets the GPU temperature (primarily for Windows using WMI)."""
+def obter_temperatura_gpu():
+    """Obtém a temperatura da GPU (principalmente para Windows usando WMI)."""
     try:
         w = wmi.WMI(namespace="root\\OpenHardwareMonitor")
         temperature_infos = w.Sensor()
@@ -50,31 +50,31 @@ def get_gpu_temperature():
             if sensor.SensorType == 'Temperature' and 'gpu' in sensor.Name.lower():
                 return int(sensor.Value)
     except Exception as e:
-        print(f"Could not get GPU temperature with WMI. Is OpenHardwareMonitor running? Error: {e}")
+        print(f"Não foi possível obter a temperatura da GPU com WMI. O OpenHardwareMonitor está em execução? Erro: {e}")
     return None
 
-# --- Main Program ---
+# --- Programa Principal ---
 
 if __name__ == "__main__":
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        print(f"Connected to {SERIAL_PORT} at {BAUD_RATE} baud.")
+        print(f"Conectado à {SERIAL_PORT} em {BAUD_RATE} baud.")
     except serial.SerialException as e:
-        print(f"Error: Could not open serial port {SERIAL_PORT}. Please check the port name and ensure the micro:bit is connected.")
+        print(f"Erro: Não foi possível abrir a porta serial {SERIAL_PORT}. Verifique o nome da porta e se o micro:bit está conectado.")
         exit()
 
     while True:
-        cpu_temp = get_cpu_temperature()
-        gpu_temp = get_gpu_temperature()
+        temp_cpu = obter_temperatura_cpu()
+        temp_gpu = obter_temperatura_gpu()
 
-        if cpu_temp is not None:
-            message = f"C={cpu_temp}\n"
-            ser.write(message.encode('utf-8'))
-            print(f"Sent: {message.strip()}")
+        if temp_cpu is not None:
+            mensagem = f"C {temp_cpu}\n"
+            ser.write(mensagem.encode('utf-8'))
+            print(f"Enviado: {mensagem.strip()}")
 
-        if gpu_temp is not None:
-            message = f"G={gpu_temp}\n"
-            ser.write(message.encode('utf-8'))
-            print(f"Sent: {message.strip()}")
+        if temp_gpu is not None:
+            mensagem = f"G {temp_gpu}\n"
+            ser.write(mensagem.encode('utf-8'))
+            print(f"Enviado: {mensagem.strip()}")
 
-        time.sleep(5)  # Send data every 5 seconds
+        time.sleep(5)  # Envia dados a cada 5 segundos
