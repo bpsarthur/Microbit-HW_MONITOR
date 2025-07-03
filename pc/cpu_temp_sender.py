@@ -1,45 +1,46 @@
-# PC Script: pc_cpu_temp_sender.py
-# This script runs on your computer.
-# It gets the CPU temperature and sends it to the micro:bit via serial.
+# Script do PC: pc_cpu_temp_sender.py
+# Este script roda no seu computador.
+# Ele obtém a temperatura da CPU e envia para o micro:bit via serial.
 
 import psutil
 import serial
 import time
 import wmi
 
-# --- Configuration ---
-# Find the correct serial port for your micro:bit.
-# On Windows, it will be 'COMx' (e.g., 'COM3').
-# On macOS or Linux, it will be '/dev/tty.usbmodem...' or '/dev/ttyACM...'.
-# !!! CHANGE THIS TO YOUR MICRO:BIT'S PORT !!!
+# --- Configuração ---
+# Encontre a porta serial correta do seu micro:bit.
+# No Windows, será 'COMx' (ex: 'COM3').
+# No macOS ou Linux, será '/dev/tty.usbmodem...' ou '/dev/ttyACM...'.
+
+# !!! ALTERE PARA A PORTA DO SEU MICRO:BIT !!!
 SERIAL_PORT = 'COM3'
 BAUD_RATE = 115200
 
-# --- Function to Get CPU Temperature ---
+# --- Função para Obter Temperatura da CPU ---
 
-def get_cpu_temperature():
+def obter_temperatura_cpu():
     """
-    Gets the CPU temperature using psutil or WMI as a fallback.
-    For WMI to work on Windows, Open Hardware Monitor must be running.
+    Obtém a temperatura da CPU usando psutil ou WMI como alternativa.
+    Para o WMI funcionar no Windows, o Open Hardware Monitor deve estar em execução.
     """
     try:
-        # psutil.sensors_temperatures() can provide CPU temps on some systems (mainly Linux)
+        # psutil.sensors_temperatures() pode fornecer temperaturas da CPU em alguns sistemas (principalmente Linux)
         temps = psutil.sensors_temperatures()
         if 'coretemp' in temps:
             return int(temps['coretemp'][0].current)
-        # Fallback for other systems or if coretemp is not available
+        # Alternativa para outros sistemas ou se coretemp não estiver disponível
         if hasattr(psutil, "sensors_temperatures"):
              temps = psutil.sensors_temperatures()
              if temps:
                  for name, entries in temps.items():
                      for entry in entries:
-                         # Look for a common CPU temperature sensor name
+                         # Procura por nomes comuns de sensores de temperatura da CPU
                          if 'cpu' in entry.label.lower() or 'core' in entry.label.lower():
                             return int(entry.current)
     except Exception as e:
-        print(f"Could not get CPU temperature with psutil: {e}")
+        print(f"Não foi possível obter a temperatura da CPU com psutil: {e}")
 
-    # For Windows, a more reliable method using WMI and Open Hardware Monitor
+    # Para Windows, método mais confiável usando WMI e Open Hardware Monitor
     try:
         w = wmi.WMI(namespace="root\\OpenHardwareMonitor")
         temperature_infos = w.Sensor()
@@ -47,31 +48,31 @@ def get_cpu_temperature():
             if sensor.SensorType == 'Temperature' and 'cpu' in sensor.Name.lower():
                 return int(sensor.Value)
     except Exception as e:
-        print(f"Could not get CPU temperature with WMI. Is OpenHardwareMonitor running? Error: {e}")
+        print(f"Não foi possível obter a temperatura da CPU com WMI. O OpenHardwareMonitor está em execução? Erro: {e}")
 
     return None
 
-# --- Main Program ---
+# --- Programa Principal ---
 
 if __name__ == "__main__":
-    print("Starting PC Temperature Sender for CPU...")
+    print("Iniciando o Enviador de Temperatura da CPU do PC...")
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        print(f"Connected to {SERIAL_PORT} at {BAUD_RATE} baud.")
+        print(f"Conectado à {SERIAL_PORT} em {BAUD_RATE} baud.")
     except serial.SerialException as e:
-        print(f"Error: Could not open serial port {SERIAL_PORT}.")
-        print("Please check the port name and ensure the micro:bit is connected.")
+        print(f"Erro: Não foi possível abrir a porta serial {SERIAL_PORT}.")
+        print("Verifique o nome da porta e se o micro:bit está conectado.")
         exit()
 
     while True:
-        cpu_temp = get_cpu_temperature()
+        cpu_temp = obter_temperatura_cpu()
 
         if cpu_temp is not None:
-            # We add "C:" as a prefix for clarity on the display
-            message = f"{cpu_temp}\n"
-            ser.write(message.encode('utf-8'))
-            print(f"Sent: {message.strip()}")
+            # Adiciona "C:" como prefixo para clareza no display
+            mensagem = f"{cpu_temp}\n"
+            ser.write(mensagem.encode('utf-8'))
+            print(f"Enviado: {mensagem.strip()}")
         else:
-            print("Could not retrieve CPU temperature.")
+            print("Não foi possível obter a temperatura da CPU.")
 
-        time.sleep(2)  # Send data every 5 seconds
+        time.sleep(2)  # Envia dados a cada 2 segundos
