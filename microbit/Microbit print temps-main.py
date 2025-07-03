@@ -2,8 +2,7 @@
 # Este script é executado no seu micro:bit.
 # Ele recebe dados de temperatura de um PC e os exibe de forma clara.
 
-from microbit import *
-
+from microbit import sleep, display, Image, uart
 # --- Configuração ---
 # A taxa de transmissão deve ser a mesma do script do PC
 BAUD_RATE = 115200
