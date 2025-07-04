@@ -59,13 +59,3 @@ Este projeto permite monitorar a temperatura do seu PC (CPU e GPU) e exibi-la em
 ## Créditos
 
 Scripts desenvolvidos para integração entre PC e micro:bit via serial, utilizando Python e MicroPython.
-
----
-
-**Pastas e arquivos deste projeto:**
-- [Microbit print temps-main.py](http://_vscodecontentref_/4)
-- [cpu_temp_sender.py](http://_vscodecontentref_/5)
-- [pc_temp_senderC_&_G.py](http://_vscodecontentref_/6)
-- Microbit print temps.hex
-- [.gitattributes](http://_vscodecontentref_/7)
-
