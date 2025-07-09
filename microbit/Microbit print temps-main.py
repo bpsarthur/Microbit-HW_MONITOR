@@ -12,7 +12,7 @@ BAUD_RATE = 115200
 uart.init(baudrate=BAUD_RATE)
 
 # Mostra um ícone de inicialização para que o usuário saiba que está pronto
-display.show(Image.SQUARE_SMALL)
+display.show(Image.HAPPY)
 sleep(1000)
 display.clear()
 
